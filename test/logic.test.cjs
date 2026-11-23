@@ -194,3 +194,34 @@ test('sanitizeReply: strips html, links and foreign emails; falls back to templa
   assert.deepEqual(r.flags, ['html_removed', 'emails_removed', 'links_removed']);
   assert.ok(sanitizeReply('', lead, SETTINGS).flags.includes('template_used'));
 });
+
+// ---------- found in the first real-API run ----------
+test('request: no temperature parameter (current Claude models reject it)', () => {
+  const req = buildClaudeRequest(normalizeLead(good, NOW).lead, SETTINGS);
+  assert.equal('temperature' in req, false);
+});
+
+test('guard: a model sign-off is removed so the email is signed only once', () => {
+  const reply = hotAi.suggested_reply + '\n\nBest regards from the Acme Automation Studio team.';
+  const out = decide(ctxFor(good), toolResponse({ ...hotAi, suggested_reply: reply }), { ...SETTINGS, autoSendHotReplies: true });
+  assert.ok(!out.email_body.includes('Best regards'));
+  assert.ok(out.email_body.endsWith(SETTINGS.senderName + '\n' + SETTINGS.brandName));
+  assert.equal(out.action, 'send_and_alert'); // removing a sign-off is not a reason for review
+  const named = sanitizeReply(hotAi.suggested_reply + '\n\nThanks,\nAlex', ctxFor(good).lead, SETTINGS);
+  assert.ok(!/Thanks,|Alex$/.test(named.text));
+});
+
+test('guard: reasons are cut at a word boundary and joined cleanly', () => {
+  const long = 'The message contains an instruction to override scoring and demand a 100 score, plus a request to send payment to a billing address. This is a manipulation attempt.';
+  const out = decide(ctxFor(good), toolResponse({ ...hotAi, reasons: [long, 'Second reason.'] }), SETTINGS);
+  assert.ok(out.reasons[0].endsWith('…'));
+  assert.ok(out.reasons[0].length <= 161);
+  assert.ok(/\s\S+…$/.test(out.reasons[0]) && !/manipulation atte…$/.test(out.reasons[0]));
+  assert.ok(!out.reasons_text.includes('.;'));
+});
+
+test('guard: a response cut off at max_tokens falls back to rules', () => {
+  const out = decide(ctxFor(good), toolResponse(hotAi, { stop_reason: 'max_tokens' }), SETTINGS);
+  assert.equal(out.scored_by, 'rules (AI fallback)');
+  assert.match(out.ai_error, /max_tokens/);
+});

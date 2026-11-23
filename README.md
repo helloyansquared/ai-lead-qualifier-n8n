@@ -28,7 +28,7 @@ Output of `npm run demo`:
 score  tier   action           scored_by            review  lead
    96  hot    draft_and_alert  ai                   no      Maria Lopez <maria@brightdental.example>
    60  warm   draft            ai                   no      Tom Becker <tom@northstar-logistics.example>
-   12  cold   log_only         ai                   no      Jamie Chen <jamie.chen.2027@gmail.com>
+   12  cold   log_only         ai                   no      Jamie Chen <jamie.chen@studentmail.example>
    10  cold   review_alert     ai                   yes     Eve <eve@corp-procurement.example>
     0  spam   log_only         rules (pre-filter)   no      Rank Pro <offers@rankpro-seo.example>
     0  spam   log_only         rules (pre-filter)   no      John Smith <john.smith@mailinator.example>
@@ -107,7 +107,7 @@ flowchart LR
 
 ## Running cost
 
-Each lead uses about 1,000 input and 250 output tokens with Claude Haiku 5.5. That is **roughly $0.25 per 1,000 leads** at Anthropic's published rates ($0.10 per million input tokens, $0.50 per million output tokens), excluding retries. Spam caught by the pre-filter costs nothing. This is an estimate; check [current pricing](https://platform.claude.com/docs/en/about-claude/pricing).
+Measured on the sample leads against the real API, each lead uses about 1,400 input and 400–560 output tokens with Claude Haiku 5.5. That is **roughly $0.40 per 1,000 leads** at Anthropic's published rates ($0.10 per million input tokens, $0.50 per million output tokens), excluding retries. Spam caught by the pre-filter costs nothing. This is an estimate; check [current pricing](https://platform.claude.com/docs/en/about-claude/pricing).
 
 ## Adapt it to your business
 

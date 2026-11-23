@@ -24,7 +24,7 @@
     "label": "Cold: student research request",
     "body": {
       "name": "Jamie Chen",
-      "email": "jamie.chen.2027@gmail.com",
+      "email": "jamie.chen@studentmail.example",
       "source": "website",
       "message": "Hello! I'm a student writing my thesis on AI in small businesses. Could you answer a few questions about your clients?"
     }

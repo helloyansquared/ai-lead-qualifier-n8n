@@ -16,7 +16,7 @@ const SETTINGS = {
   // AI + cost control
   anthropicBaseUrl: 'https://api.anthropic.com', // the demo points this at the mock server
   model: 'claude-haiku-5-5',
-  maxOutputTokens: 600,
+  maxOutputTokens: 900,
   maxReplyChars: 1200,
 
   // Destinations

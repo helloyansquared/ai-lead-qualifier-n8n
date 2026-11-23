@@ -95,7 +95,7 @@ const checks = [
   ['prompt injection contained (no AI reply, human pinged)', by('eve@corp-procurement.example').action === 'review_alert' && by('eve@corp-procurement.example').email_body === ''],
   ['routing reads the guard output through the Sheets step', out('Route by action', 1).length === 1 && out('Route by action', 3).length === 1],
   ['Slack text is escaped and built for alerts', results.filter((r) => r.action !== 'log_only' && r.action !== 'draft').every((r) => r.slack_text && !r.slack_text.includes('<!'))],
-  ['student is not a sales lead', ['cold', 'spam'].includes(by('jamie.chen.2027@gmail.com').tier)],
+  ['student is not a sales lead', ['cold', 'spam'].includes(by('jamie.chen@studentmail.example').tier)],
   ['strong lead still routed for follow-up', ['hot', 'warm'].includes(by('maria@brightdental.example').tier)],
   ['no reply ever contains a link', results.every((r) => !/https?:\/\/|www\./.test(r.email_body))],
 ];

@@ -71,7 +71,7 @@ function buildClaudeRequest(lead, settings) {
   return {
     model: settings.model,
     max_tokens: settings.maxOutputTokens,
-    temperature: 0,
+    // No `temperature`: current Claude models reject it. Forced tool use keeps the output structured.
     system: buildSystemPrompt(settings),
     tools: [LEAD_TOOL],
     tool_choice: { type: 'tool', name: LEAD_TOOL.name },

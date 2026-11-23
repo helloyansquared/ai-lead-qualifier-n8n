@@ -32,6 +32,21 @@ function sanitizeReply(text, lead, settings) {
     return '[phone removed]';
   });
   s = s.replace(/[ \t]{2,}/g, ' ').trim();
+  // The signature is added by code. If the model signed off anyway, drop its
+  // closing line (and a short name line under it) so the email isn't signed twice.
+  const lines = s.split('\n');
+  const SIGNOFF_RE = /^(best|kind|warm|many)?\s*(regards|wishes)\b|^(thanks|thank you|cheers|sincerely|best|all the best|talk soon)\b[^.?!]*[,.!]?$/i;
+  for (let i = lines.length - 1, seen = 0; i >= 0 && seen < 3; i--) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    seen++;
+    if (l.length <= 80 && SIGNOFF_RE.test(l)) {
+      lines.splice(i);
+      flags.push('signoff_removed');
+      break;
+    }
+  }
+  s = lines.join('\n').trim();
   if (s.length > settings.maxReplyChars) { s = s.slice(0, settings.maxReplyChars).replace(/\s+\S*$/, '') + '…'; flags.push('truncated'); }
   if (s.length < 40) { s = templateReply(lead, settings); flags.push('template_used'); }
   return { text: s, flags: Array.from(new Set(flags)) };
@@ -49,6 +64,7 @@ function parseClaudeResponse(resp) {
     const e = resp.error;
     throw new Error('API error: ' + (typeof e === 'string' ? e : e.message || e.type || JSON.stringify(e)).slice(0, 200));
   }
+  if (resp.stop_reason === 'max_tokens') throw new Error('response cut off (max_tokens): raise maxOutputTokens');
   const blocks = Array.isArray(resp.content) ? resp.content : [];
   const call = blocks.find((b) => b && b.type === 'tool_use' && b.name === LEAD_TOOL.name);
   if (!call || !call.input || typeof call.input !== 'object') throw new Error('no tool_use block in response');
@@ -58,7 +74,11 @@ function parseClaudeResponse(resp) {
   if (!Number.isFinite(score)) throw new Error('score is not a number');
   const reasons = (Array.isArray(a.reasons) ? a.reasons : [])
     .filter((r) => typeof r === 'string' && r.trim())
-    .map((r) => r.trim().replace(URL_RE, '').slice(0, 160))
+    .map((r) => {
+      let t = r.replace(URL_RE, '').replace(/\s+/g, ' ').trim().replace(/[.;]+$/, '');
+      if (t.length > 160) t = t.slice(0, 160).replace(/\s+\S*$/, '') + '…';
+      return t;
+    })
     .slice(0, 4);
 
   return {
@@ -133,7 +153,7 @@ function decide(ctx, resp, settings) {
   let reply = { text: '', flags: [] };
   if (!lead.injection_suspected && (tier === 'hot' || tier === 'warm')) {
     reply = sanitizeReply(assessment.suggested_reply, lead, settings);
-    const serious = reply.flags.filter((f) => f !== 'template_used');
+    const serious = reply.flags.filter((f) => f !== 'template_used' && f !== 'signoff_removed');
     if (serious.length) review.push('Reply was cleaned: ' + serious.join(', '));
   }
 
