@@ -1,0 +1,16 @@
+{
+  "name": "ai-lead-qualifier-n8n",
+  "version": "1.0.0",
+  "description": "n8n workflow: score website leads with Claude, log to Google Sheets, draft Gmail replies, alert Slack. Tested, runs without API keys.",
+  "private": true,
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node scripts/build-workflow.mjs",
+    "test": "node --test test/logic.test.cjs",
+    "demo": "node test/e2e.mjs",
+    "demo:ai-down": "MOCK_MODE=down node test/e2e.mjs",
+    "demo:ai-garbage": "MOCK_MODE=garbage node test/e2e.mjs",
+    "mock": "node mock/mock-claude.mjs"
+  }
+}

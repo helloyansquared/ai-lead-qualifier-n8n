@@ -1,0 +1,40 @@
+<!--
+  Minimal contact form for the AI Lead Qualifier.
+  IMPORTANT: never put the webhook secret in public HTML or JavaScript.
+  Post the form to your own backend / serverless function (or use a form tool such as
+  Tally, Typeform or Webflow forms) and forward it to n8n from there with the
+  X-Webhook-Secret header.
+  The "fax_number" field is a honeypot: hidden from humans, bots fill it.
+-->
+<form id="lead-form">
+  <input name="name" placeholder="Your name" required>
+  <input name="email" type="email" placeholder="Work email" required>
+  <input name="company" placeholder="Company">
+  <input name="website" placeholder="Website">
+  <textarea name="message" placeholder="What would you like to automate?" required></textarea>
+  <input name="fax_number" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+  <input type="hidden" name="source" value="website">
+  <button type="submit">Send</button>
+  <p id="lead-form-error" hidden>Sorry, something went wrong. Please try again or email us directly.</p>
+</form>
+<script>
+  const form = document.getElementById('lead-form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true; // stops double-clicks creating two leads
+    document.getElementById('lead-form-error').hidden = true;
+    try {
+      const res = await fetch('/api/lead', { // your backend: adds the secret header and forwards to n8n
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      form.innerHTML = '<p>Thanks! We\'ll get back to you shortly.</p>';
+    } catch (err) {
+      document.getElementById('lead-form-error').hidden = false;
+      button.disabled = false;
+    }
+  });
+</script>
