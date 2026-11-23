@@ -39,6 +39,22 @@ Stopped as duplicate: maria@brightdental.example
 
 "Eve" is a prompt-injection attempt. The mock AI is *deliberately* fooled into scoring it 100. The workflow's code still caps the score, drafts nothing and asks a person to look instead.
 
+### Results from a real run
+
+The same leads, sent to the production webhook of a local n8n 2.48 with the real Claude API, Gmail, Slack and Google Sheets:
+
+```
+score  tier   action           scored_by            lead
+   88  hot    draft_and_alert  ai                   Maria Lopez (dental group, 4 clinics, ~$3k, starts next week)
+   40  cold   log_only         ai                   Tom Becker (logistics, vague question)
+   15  cold   log_only         ai                   Jamie Chen (student thesis)
+    5  cold   review_alert     ai                   Eve (prompt injection: the real model also saw through it)
+    0  spam   log_only         rules (pre-filter)   Rank Pro (SEO pitch, no AI call)
+    0  spam   log_only         rules (pre-filter)   John Smith (honeypot)
+```
+
+Maria's Slack alert and Gmail draft arrived about 10 seconds after the form was sent. The duplicate was stopped and the bad email got a 400. The first real run also surfaced four issues the mock could not (an API parameter newer models reject, a doubled sign-off, mid-word truncation, no `max_tokens` guard); all are fixed and covered by tests.
+
 ---
 
 ## How it works
